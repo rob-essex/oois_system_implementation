@@ -1,272 +1,161 @@
-<!DOCTYPE HTML>
-<html>
+import unittest
+from unittest.mock import patch
+from system_implementation import *
 
-<head>
-    <meta charset="utf-8">
+# Initialize mock objects for integration tests
 
-    <title>test_system_implementation.py (editing)</title>
-    <link id="favicon" rel="shortcut icon" type="image/x-icon" href="/static/base/images/favicon-file.ico?v=e2776a7f45692c839d6eea7d7ff6f3b2">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <link rel="stylesheet" href="/static/components/jquery-ui/themes/smoothness/jquery-ui.min.css?v=3c2a865c832a1322285c55c6ed99abb2" type="text/css" />
-    <link rel="stylesheet" href="/static/components/jquery-typeahead/dist/jquery.typeahead.min.css?v=9df10041c3e07da766e7c48dd4c35e4a" type="text/css" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    
-<link rel="stylesheet" href="/static/components/codemirror/lib/codemirror.css?v=fc217d502b05f65616356459c0ec1d62">
-<link rel="stylesheet" href="/static/components/codemirror/addon/dialog/dialog.css?v=c89dce10b44d2882a024e7befc2b63f5">
+mock_healthcare_professional = HealthcareProfessional("healthcare_pro_name", "123")
+mock_doctor = Doctor("doctor_name", "456")
+mock_nurse = Nurse("nurse_name", "789")
+mock_receptionist = Receptionist("receptionist_name", "987")
+mock_patient = Patient("patient_name", "123 Main St", "1234567890")
+mock_patient_2 = Patient("patient_name2", "456 2nd St", "222-333-4444")
+mock_appointment = Appointment("mock_appointment_type", mock_nurse, mock_patient)
+mock_appointment_2 = Appointment("mock_appointment_type_2", mock_nurse, mock_patient)
+mock_appointment_schedule = AppointmentSchedule()
+mock_appointment_schedule_2 = AppointmentSchedule()
+mock_prescription = Prescription("mock_rx_type", mock_patient, mock_doctor, "10", "1.500")
+mock_prescription2 = Prescription("mock_rx_type2", mock_patient_2, mock_doctor, "20", "2.500")
 
-    <link rel="stylesheet" href="/static/style/style.min.css?v=2165fc0d023f0baf5cce3b2a6db40e22" type="text/css"/>
-    
+# Unit and Integration tests for each class
 
-    <link rel="stylesheet" href="/custom/custom.css" type="text/css" />
-    <script src="/static/components/es6-promise/promise.min.js?v=f004a16cb856e0ff11781d01ec5ca8fe" type="text/javascript" charset="utf-8"></script>
-    <script src="/static/components/react/react.production.min.js?v=34f96ffc962a7deecc83037ccb582b58" type="text/javascript"></script>
-    <script src="/static/components/react/react-dom.production.min.js?v=b14d91fb641317cda38dbc9dbf985ab4" type="text/javascript"></script>
-    <script src="/static/components/create-react-class/index.js?v=94feb9971ce6d26211729abc43f96cd2" type="text/javascript"></script>
-    <script src="/static/components/requirejs/require.js?v=951f856e81496aaeec2e71a1c2c0d51f" type="text/javascript" charset="utf-8"></script>
-    <script>
-      require.config({
-          
-          urlArgs: "v=20220523142421",
-          
-          baseUrl: '/static/',
-          paths: {
-            'auth/js/main': 'auth/js/main.min',
-            custom : '/custom',
-            nbextensions : '/nbextensions',
-            kernelspecs : '/kernelspecs',
-            underscore : 'components/underscore/underscore-min',
-            backbone : 'components/backbone/backbone-min',
-            jed: 'components/jed/jed',
-            jquery: 'components/jquery/jquery.min',
-            json: 'components/requirejs-plugins/src/json',
-            text: 'components/requirejs-text/text',
-            bootstrap: 'components/bootstrap/dist/js/bootstrap.min',
-            bootstraptour: 'components/bootstrap-tour/build/js/bootstrap-tour.min',
-            'jquery-ui': 'components/jquery-ui/jquery-ui.min',
-            moment: 'components/moment/min/moment-with-locales',
-            codemirror: 'components/codemirror',
-            termjs: 'components/xterm.js/xterm',
-            typeahead: 'components/jquery-typeahead/dist/jquery.typeahead.min',
-          },
-          map: { // for backward compatibility
-              "*": {
-                  "jqueryui": "jquery-ui",
-              }
-          },
-          shim: {
-            typeahead: {
-              deps: ["jquery"],
-              exports: "typeahead"
-            },
-            underscore: {
-              exports: '_'
-            },
-            backbone: {
-              deps: ["underscore", "jquery"],
-              exports: "Backbone"
-            },
-            bootstrap: {
-              deps: ["jquery"],
-              exports: "bootstrap"
-            },
-            bootstraptour: {
-              deps: ["bootstrap"],
-              exports: "Tour"
-            },
-            "jquery-ui": {
-              deps: ["jquery"],
-              exports: "$"
-            }
-          },
-          waitSeconds: 30,
-      });
+class TestPatient(unittest.TestCase):
+    def test_patient_attributes(self):
+        patient1 = Patient("Test_Patient_1","123 Main St","123-456-7890")
+        self.assertEqual(patient1.name, "Test_Patient_1")
+        self.assertEqual(patient1.address, "123 Main St")
+        self.assertEqual(patient1.phone, "123-456-7890")
 
-      require.config({
-          map: {
-              '*':{
-                'contents': 'services/contents',
-              }
-          }
-      });
+    @patch('builtins.print')
+    def test_patient_request_repeat(self,test_repeat_prescription):
+        mock_patient.request_repeat(mock_prescription)
+        test_repeat_prescription.assert_called_with('Sending repeat prescription request of ', 'mock_rx_type', ' to ', 'doctor_name', '.')
+        mock_patient.request_repeat(mock_prescription2)
+        test_repeat_prescription.assert_called_with('This prescription does not belong to this patient.')
 
-      // error-catching custom.js shim.
-      define("custom", function (require, exports, module) {
-          try {
-              var custom = require('custom/custom');
-              console.debug('loaded custom.js');
-              return custom;
-          } catch (e) {
-              console.error("error loading custom.js", e);
-              return {};
-          }
-      })
+    @patch('builtins.print')
+    def test_request_appointment(self, test_request):
+        mock_patient.request_appointment("Annual check-up",mock_nurse)
+        test_request.assert_called_with('patient_name','requests a(n) ', 'Annual check-up', 'appointment with ','nurse_name','.')
 
-    document.nbjs_translations = {"domain": "nbjs", "locale_data": {"nbjs": {"": {"domain": "nbjs"}}}};
-    document.documentElement.lang = navigator.language.toLowerCase();
-    </script>
+class TestHealthcareProfessional(unittest.TestCase):
+    def test_healthcare_professional_attributes(self):
+        healthcare_pro1 = HealthcareProfessional("Healthcare_Pro_1","123")
+        self.assertEqual(healthcare_pro1.name, "Healthcare_Pro_1")
+        self.assertEqual(healthcare_pro1.employee_number, "123")
 
-    
-    
-
-</head>
-
-<body class="edit_app "
- 
-data-base-url="/"
-data-file-path="test_system_implementation.py"
-
-  
- 
-
-dir="ltr">
-
-<noscript>
-    <div id='noscript'>
-      Jupyter Notebook requires JavaScript.<br>
-      Please enable it to proceed. 
-  </div>
-</noscript>
-
-<div id="header" role="navigation" aria-label="Top Menu">
-  <div id="header-container" class="container">
-  <div id="ipython_notebook" class="nav navbar-brand"><a href="/tree" title='dashboard'>
-      <img src='/static/base/images/logo.png?v=641991992878ee24c6f3826e81054a0f' alt='Jupyter Notebook'/>
-  </a></div>
-
-  
-
-<span id="save_widget" class="pull-left save_widget">
-    <span class="filename"></span>
-    <span class="last_modified"></span>
-</span>
+    @patch('builtins.print')
+    def test_consultation(self, test_consult):
+        mock_healthcare_professional.consultation(mock_appointment)
+        test_consult.assert_called_with('healthcare_pro_name', ' conducted the consultation for ', 'patient_name', "'s ", 'mock_appointment_type',
+              'appointment.')
 
 
-  
+class TestDoctor(unittest.TestCase):
+    def test_doctor_attributes(self):
+        doctor1 = Doctor('doctor1_name', '111')
+        self.assertEqual(doctor1.name, 'doctor1_name')
+        self.assertEqual(doctor1.employee_number, '111')
 
-  
-  
-  
-  
+    def test_issue_prescription(self):
+        test_prescription = mock_doctor.issue_prescription(mock_patient,'mock_rx_type_3','300','300mg')
+        self.assertEqual(test_prescription.prescription_type, 'mock_rx_type_3')
+        self.assertEqual(test_prescription.patient, 'patient_name')
+        self.assertEqual(test_prescription.doctor, 'doctor_name')
+        self.assertEqual(test_prescription.quantity, '300')
+        self.assertEqual(test_prescription.dosage, '300mg')
 
-    <span id="login_widget">
-      
-    </span>
+    def test_register_patient(self):
+        mock_doctor.register_patient(mock_patient)
+        self.assertIn(mock_patient, mock_doctor.registered_patient_list)
 
-  
-
-  
-  
-  </div>
-  <div class="header-bar"></div>
-
-  
-
-<div id="menubar-container" class="container">
-  <div id="menubar">
-    <div id="menus" class="navbar navbar-default" role="navigation">
-      <div class="container-fluid">
-          <p  class="navbar-text indicator_area">
-          <span id="current-mode" >current mode</span>
-          </p>
-        <button type="button" class="btn btn-default navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-          <i class="fa fa-bars"></i>
-          <span class="navbar-text">Menu</span>
-        </button>
-        <ul class="nav navbar-nav navbar-right">
-          <li id="notification_area"></li>
-        </ul>
-        <div class="navbar-collapse collapse">
-          <ul class="nav navbar-nav">
-            <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">File</a>
-              <ul id="file-menu" class="dropdown-menu">
-                <li id="new-file"><a href="#">New</a></li>
-                <li id="save-file"><a href="#">Save</a></li>
-                <li id="rename-file"><a href="#">Rename</a></li>
-                <li id="download-file"><a href="#">Download</a></li>
-              </ul>
-            </li>
-            <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Edit</a>
-              <ul id="edit-menu" class="dropdown-menu">
-                <li id="menu-find"><a href="#">Find</a></li>
-                <li id="menu-replace"><a href="#">Find &amp; Replace</a></li>
-                <li class="divider"></li>
-                <li class="dropdown-header">Key Map</li>
-                <li id="menu-keymap-default"><a href="#">Default<i class="fa"></i></a></li>
-                <li id="menu-keymap-sublime"><a href="#">Sublime Text<i class="fa"></i></a></li>
-                <li id="menu-keymap-vim"><a href="#">Vim<i class="fa"></i></a></li>
-                <li id="menu-keymap-emacs"><a href="#">emacs<i class="fa"></i></a></li>
-              </ul>
-            </li>
-            <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">View</a>
-              <ul id="view-menu" class="dropdown-menu">
-              <li id="toggle_header" title="Show/Hide the logo and notebook title (above menu bar)">
-              <a href="#">Toggle Header</a></li>
-              <li id="menu-line-numbers"><a href="#">Toggle Line Numbers</a></li>
-              </ul>
-            </li>
-            <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Language</a>
-              <ul id="mode-menu" class="dropdown-menu">
-              </ul>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="lower-header-bar"></div>
+    @patch('builtins.print')
+    def test_consultation(self, test_consult):
+        mock_doctor.consultation(mock_appointment)
+        test_consult.assert_called_with('doctor_name', ' conducted the consultation for ', 'patient_name',
+                                        "'s ", 'mock_appointment_type', 'appointment.')
 
 
-</div>
+class TestNurse(unittest.TestCase):
+    def test_nurse_attributes(self):
+        nurse1 = Nurse('nurse1_name', '222')
+        self.assertEqual(nurse1.name, 'nurse1_name')
+        self.assertEqual(nurse1.employee_number, '222')
 
-<div id="site">
-
-
-<div id="texteditor-backdrop">
-<div id="texteditor-container" class="container"></div>
-</div>
-
-
-</div>
-
-
+    @patch('builtins.print')
+    def test_consultation(self, test_consult):
+        mock_nurse.consultation(mock_appointment)
+        test_consult.assert_called_with('nurse_name', ' conducted the consultation for ', 'patient_name',
+                                        "'s ", 'mock_appointment_type', 'appointment.')
 
 
+class TestPrescription(unittest.TestCase):
+    def test_prescription_attributes(self):
+        prescription1 = Prescription('ibuprofen',mock_patient,mock_doctor,'200','200mg')
+        self.assertEqual(prescription1.prescription_type, 'ibuprofen')
+        self.assertEqual(prescription1.patient, 'patient_name')
+        self.assertEqual(prescription1.doctor, 'doctor_name')
+        self.assertEqual(prescription1.quantity, '200')
+        self.assertEqual(prescription1.dosage, '200mg')
 
 
-    
+class TestAppointment(unittest.TestCase):
+    def test_appointment_attributes(self):
+        appointment1 = Appointment('consultation', mock_nurse, mock_patient)
+        self.assertEqual(appointment1.appointment_type, 'consultation')
+        self.assertEqual(appointment1.staff, 'nurse_name')
+        self.assertEqual(appointment1.patient, 'patient_name')
 
 
-<script src="/static/edit/js/main.min.js?v=e3253dc1d2a1f445711555bd8ea58ada" type="text/javascript" charset="utf-8"></script>
+class TestAppointmentSchedule(unittest.TestCase):
+    def test_schedule_attributes(self):
+        test_schedule_1 = AppointmentSchedule()
+        self.assertDictEqual(test_schedule_1.schedule, mock_appointment_schedule_2.schedule)
+
+    @patch('builtins.print')
+    def test_add_appointment(self, test_unavailable):
+        mock_appointment_schedule.add_appointment(mock_appointment, '0900')
+        self.assertIs(mock_appointment_schedule.schedule['0900'], mock_appointment)
+        mock_appointment_schedule.add_appointment(mock_appointment_2, '0900')
+        test_unavailable.assert_called_with('This appointment time is unavailable.')
+        mock_appointment_schedule.add_appointment(mock_appointment_2, '0930')
+        test_unavailable.assert_called_with('This is not a valid appointment time.')
+
+    def test_cancel_appointment(self):
+        mock_appointment_schedule.cancel_appointment(mock_appointment)
+        self.assertEqual(mock_appointment_schedule.schedule['0900'],'Available')
+
+    @patch('builtins.print')
+    def test_find_next_available(self, test_next_appointment):
+        # instantiate mock appointment placeholders
+        mock_appointment_schedule.add_appointment(mock_appointment,'0800')
+        mock_appointment_schedule.add_appointment(mock_appointment_2, '0900')
+
+        mock_appointment_schedule.find_next_available()
+        test_next_appointment.assert_called_with('Next available appointment: ', '1000')
 
 
-<script type='text/javascript'>
-  function _remove_token_from_url() {
-    if (window.location.search.length <= 1) {
-      return;
-    }
-    var search_parameters = window.location.search.slice(1).split('&');
-    for (var i = 0; i < search_parameters.length; i++) {
-      if (search_parameters[i].split('=')[0] === 'token') {
-        // remote token from search parameters
-        search_parameters.splice(i, 1);
-        var new_search = '';
-        if (search_parameters.length) {
-          new_search = '?' + search_parameters.join('&');
-        }
-        var new_url = window.location.origin + 
-                      window.location.pathname + 
-                      new_search + 
-                      window.location.hash;
-        window.history.replaceState({}, "", new_url);
-        return;
-      }
-    }
-  }
-  _remove_token_from_url();
-</script>
-</body>
+class TestReceptionist(unittest.TestCase):
+    def test_receptionist_attributes(self):
+        receptionist1 = Receptionist('receptionist_1_name','555')
+        self.assertEqual(receptionist1.name, 'receptionist_1_name')
+        self.assertEqual(receptionist1.employee_number, '555')
 
-</html>
+    def test_make_appointment(self):
+        test_appointment = mock_receptionist.make_appointment('consultation',mock_doctor,mock_patient)
+        self.assertEqual(test_appointment.appointment_type, 'consultation')
+        self.assertEqual(test_appointment.staff, 'doctor_name')
+        self.assertEqual(test_appointment.patient, 'patient_name')
+
+    def test_cancel_appointment(self):
+        # instantiate mock appointment placeholders
+        mock_appointment_schedule_3 = AppointmentSchedule()
+        mock_appointment_schedule_3.add_appointment(mock_appointment, '0800')
+        mock_appointment_schedule_3.add_appointment(mock_appointment_2, '0900')
+
+        mock_receptionist.cancel_appointment(mock_appointment, mock_appointment_schedule_3)
+        self.assertIsNot(mock_appointment_schedule_3.schedule['0800'], mock_appointment)
+        self.assertIs(mock_appointment_schedule_3.schedule['0900'], mock_appointment_2)
+
+if __name__ == '__main__':
+    unittest.main()
